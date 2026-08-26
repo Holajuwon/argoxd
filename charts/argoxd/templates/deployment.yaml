@@ -18,6 +18,16 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - node
+            - -e
+            - |
+              const http = require('http');
+              const port = parseInt(process.env.PORT || '3000');
+              http.createServer((req, res) => {
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ app: 'argoxd', status: 'ok', env: process.env.NODE_ENV }));
+              }).listen(port, () => console.log(`argoxd running on port ${port}`));
           ports:
             - name: http
               containerPort: {{ .Values.service.targetPort }}
