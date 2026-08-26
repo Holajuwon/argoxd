@@ -1,0 +1,45 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "argoxd.fullname" . }}-sync-job
+  labels:
+    {{- include "argoxd.labels" . | nindent 4 }}
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 120
+  template:
+    metadata:
+      labels:
+        {{- include "argoxd.selectorLabels" . | nindent 8 }}
+        job: sync
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: zip-and-post
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - node
+            - /scripts/zip-and-post.js
+          env:
+            - name: WORK_DIR
+              value: /work
+            - name: UPLOAD_URL
+              value: "http://{{ include "argoxd.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/upload"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: work-files
+              mountPath: /work
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: work-files
+          configMap:
+            name: {{ include "argoxd.fullname" . }}-work-files
+        - name: scripts
+          configMap:
+            name: {{ include "argoxd.fullname" . }}-scripts

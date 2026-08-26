@@ -23,8 +23,69 @@ spec:
             - -e
             - |
               const http = require('http');
+              const zlib = require('zlib');
               const port = parseInt(process.env.PORT || '3000');
-              http.createServer((req, res) => {
+
+              // Minimal ZIP parser — handles DEFLATE and stored entries (no external deps)
+              function parseZip(buf) {
+                const files = [];
+                let i = 0;
+                while (i < buf.length - 4) {
+                  if (buf.readUInt32LE(i) !== 0x04034b50) break;
+                  const flags      = buf.readUInt16LE(i + 6);
+                  const method     = buf.readUInt16LE(i + 8);
+                  const compressed = buf.readUInt32LE(i + 18);
+                  const nameLen    = buf.readUInt16LE(i + 26);
+                  const extraLen   = buf.readUInt16LE(i + 28);
+                  const name       = buf.slice(i + 30, i + 30 + nameLen).toString();
+                  const dataStart  = i + 30 + nameLen + extraLen;
+                  const raw        = buf.slice(dataStart, dataStart + compressed);
+                  if (!name.endsWith('/')) {
+                    const content = method === 8
+                      ? zlib.inflateRawSync(raw).toString('utf8')
+                      : raw.toString('utf8');
+                    files.push({ name, content });
+                  }
+                  i = dataStart + compressed;
+                }
+                return files;
+              }
+
+              function collectBody(req) {
+                return new Promise((resolve, reject) => {
+                  const chunks = [];
+                  req.on('data', c => chunks.push(c));
+                  req.on('end', () => resolve(Buffer.concat(chunks)));
+                  req.on('error', reject);
+                });
+              }
+
+              async function handleUpload(req, res) {
+                try {
+                  const body = await collectBody(req);
+                  const { zipBase64 } = JSON.parse(body.toString());
+                  if (!zipBase64) {
+                    res.writeHead(400, { 'Content-Type': 'application/json' });
+                    return res.end(JSON.stringify({ error: 'missing zipBase64' }));
+                  }
+                  const files = parseZip(Buffer.from(zipBase64, 'base64'));
+                  console.log('[upload] received files:', files.map(f => f.name));
+                  files.forEach(({ name, content }) => {
+                    console.log(`[upload] --- ${name} ---\n${content}`);
+                  });
+                  res.writeHead(200, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ received: files.map(f => f.name) }));
+                } catch (err) {
+                  console.error('[upload] error:', err.message);
+                  res.writeHead(500, { 'Content-Type': 'application/json' });
+                  res.end(JSON.stringify({ error: 'internal error' }));
+                }
+              }
+
+              http.createServer(async (req, res) => {
+                if (req.method === 'POST' && req.url === '/upload') {
+                  return handleUpload(req, res);
+                }
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ app: 'argoxd', status: 'ok', env: process.env.NODE_ENV }));
               }).listen(port, () => console.log(`argoxd running on port ${port}`));
