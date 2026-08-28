@@ -41,10 +41,21 @@ fi
 # ---------------------------------------------------------------------------
 
 APIC_DIR="/tmp/apic-workdir"
-mkdir -p "${APIC_DIR}"
-cp -rL "${WORK_DIR}/." "${APIC_DIR}/"
-echo "[apic-build-and-post] copied work files to ${APIC_DIR}"
+APIC_PROJECT_DIR="${APIC_DIR}/pet-mcp"
+mkdir -p "${APIC_PROJECT_DIR}"
+
+# .apistudio-projects lives at the root of --localDir
+cp -L "${WORK_DIR}/.apistudio-projects" "${APIC_DIR}/.apistudio-projects"
+
+# all YAML files go inside the project subdirectory
+for f in "${WORK_DIR}"/*.yaml "${WORK_DIR}"/*.yml; do
+  [ -f "$f" ] && cp -L "$f" "${APIC_PROJECT_DIR}/"
+done
+
+echo "[apic-build-and-post] localDir layout:"
 ls -la "${APIC_DIR}"
+echo "[apic-build-and-post] project dir:"
+ls -la "${APIC_PROJECT_DIR}"
 
 # ---------------------------------------------------------------------------
 # Run `apic build` against the real copy
