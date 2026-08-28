@@ -28,7 +28,8 @@ kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
 
 info "Applying ArgoCD stable install manifest..."
 kubectl apply -n argocd -f \
-  https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml \
+  || true
 
 info "Waiting for ArgoCD pods to be ready (up to 3 min)..."
 kubectl wait --for=condition=Ready pods --all -n argocd --timeout=180s
@@ -43,9 +44,10 @@ echo "  ArgoCD admin password: ${ARGOCD_PASSWORD}"
 echo "──────────────────────────────────────────────────────"
 echo ""
 
-# ─── 4. Apply the ArgoCD Application manifest ────────────────────────────────
-info "Applying ArgoCD Application manifest..."
+# ─── 4. Apply the ArgoCD Application manifests ───────────────────────────────
+info "Applying ArgoCD Application manifests..."
 kubectl apply -f argocd/application.yaml
+kubectl apply -f argocd/work-application.yaml
 
 # ─── 5. Port-forward instructions ────────────────────────────────────────────
 echo ""
@@ -60,4 +62,8 @@ echo "    kubectl port-forward svc/argocd-server -n argocd 8080:443"
 echo ""
 echo "  Or log in via CLI:"
 echo "    argocd login localhost:8080 --username admin --password '${ARGOCD_PASSWORD}' --insecure"
+echo ""
+echo "  ArgoCD Applications:"
+echo "    argoxd       — watches charts/argoxd/ (Helm)"
+echo "    argoxd-work  — watches work/ (Kustomize)"
 echo ""

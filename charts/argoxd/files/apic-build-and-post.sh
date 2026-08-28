@@ -44,7 +44,8 @@ echo "[apic-build-and-post] running: apic build --localDir ${WORK_DIR} --output 
 
 apic build \
   --localDir "${WORK_DIR}" \
-  --output   "${BUILD_DIR}"
+  --output   "${BUILD_DIR}" \
+  --all
 
 # ---------------------------------------------------------------------------
 # Locate the produced ZIP
