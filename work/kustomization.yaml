@@ -3,6 +3,9 @@ kind: Kustomization
 
 namespace: default
 
+resources:
+  - sync-job.yaml
+
 configMapGenerator:
   - name: argoxd-work-files
     files:

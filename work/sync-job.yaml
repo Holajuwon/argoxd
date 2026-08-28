@@ -1,0 +1,53 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: argoxd-sync-job
+  namespace: default
+  annotations:
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  ttlSecondsAfterFinished: 600
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: argoxd
+        job: sync
+    spec:
+      restartPolicy: Never
+      automountServiceAccountToken: false
+      containers:
+        - name: apic-build-and-post
+          image: node:24-alpine
+          imagePullPolicy: IfNotPresent
+          command:
+            - sh
+            - /scripts/apic-build-and-post.sh
+          env:
+            - name: WORK_DIR
+              value: /work
+          envFrom:
+            - secretRef:
+                name: argoxd-standalone
+            - secretRef:
+                name: argoxd-standalone-credentials
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          volumeMounts:
+            - name: work-files
+              mountPath: /work
+            - name: scripts
+              mountPath: /scripts
+      volumes:
+        - name: work-files
+          configMap:
+            name: argoxd-work-files
+        - name: scripts
+          configMap:
+            name: argoxd-scripts
