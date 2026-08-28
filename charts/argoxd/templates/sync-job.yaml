@@ -31,6 +31,8 @@ spec:
           envFrom:
             - secretRef:
                 name: {{ include "argoxd.fullname" . }}-standalone
+            - secretRef:
+                name: argoxd-standalone-credentials
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
