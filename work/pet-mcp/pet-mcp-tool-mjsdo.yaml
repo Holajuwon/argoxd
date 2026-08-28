@@ -101,6 +101,36 @@ spec:
         operationMethod: GET
         api:
           $path: ./pet-spec.yml
+    - name: place_order
+      description: This tool places a new order for a pet in the store. It allows
+        users to submit purchase orders with pet and quantity details.
+      inputSchema:
+        type: object
+        properties:
+          petId:
+            description: ID of the pet being ordered (e.g., 12345).
+            type: integer
+            format: int64
+          quantity:
+            description: Number of pets to order (e.g., 1).
+            type: integer
+            format: int32
+          status:
+            description: Order status (e.g., placed).
+            type: string
+            enum:
+              - placed
+              - approved
+              - delivered
+        required:
+          - petId
+          - quantity
+      title: Place an order for a pet.
+      x-api-binding:
+        operationPath: /store/order
+        operationMethod: POST
+        api:
+          $path: ./pet-spec.yml
     - name: get_order_by_id
       description: This tool fetches an order's details using an order ID. It provides
         valuable information about the order, facilitating tracking and
