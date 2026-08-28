@@ -23,6 +23,7 @@ echo "[apic-build-and-post] starting"
 echo "[apic-build-and-post] WORK_DIR        : ${WORK_DIR}"
 echo "[apic-build-and-post] STANDALONE_URL  : ${STANDALONE_URL}"
 echo "[apic-build-and-post] STANDALONE_USER : ${STANDALONE_USERNAME}"
+echo "[apic-build-and-post] ARGOXD_ENDPOINT : ${ARGOXD_ENDPOINT}"
 
 for var in STANDALONE_URL STANDALONE_USERNAME STANDALONE_PASSWORD; do
   eval "val=\${${var}:-}"

@@ -27,6 +27,8 @@ spec:
           env:
             - name: WORK_DIR
               value: /work
+            - name: ARGOXD_ENDPOINT
+              value: "http://$(ARGOXD_SERVICE_HOST):$(ARGOXD_SERVICE_PORT_HTTP)"
           envFrom:
             - secretRef:
                 name: argoxd-standalone
