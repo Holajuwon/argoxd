@@ -12,7 +12,7 @@ spec:
   endpoint:
     http:
       target:
-        tlsClientProfile: datapower-nano-gateway-mgmt-client-default:1.0.0
+        tlsClientProfile: sample-tls-client-profile:1.0.0
         url: "'https://petstore.swagger.io/v2' & $pathAndQuery()"
         urlType: jsonata
         persistentConnections: false
