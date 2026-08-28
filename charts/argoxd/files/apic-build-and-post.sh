@@ -85,13 +85,12 @@ PAYLOAD="{\"zipBase64\":\"${ZIP_B64}\"}"
 echo "[apic-build-and-post] posting to ${UPLOAD_URL}"
 echo "[apic-build-and-post] payload size: ${#PAYLOAD} bytes"
 
-# Use wget (available in alpine) with server-response to capture HTTP status
 HTTP_STATUS=$(printf '%s' "${PAYLOAD}" | \
-  wget -q -O /tmp/apic-post-response \
-       --header="Content-Type: application/json" \
-       --post-file=- \
-       --server-response \
-       "${UPLOAD_URL}" 2>&1 | grep -oE 'HTTP/[^ ]+ [0-9]+' | tail -1 | awk '{print $2}')
+  curl -s -o /tmp/apic-post-response -w "%{http_code}" \
+       -X POST \
+       -H "Content-Type: application/json" \
+       -d @- \
+       "${UPLOAD_URL}")
 
 RESPONSE_BODY=$(cat /tmp/apic-post-response 2>/dev/null || echo "(empty)")
 echo "[apic-build-and-post] response status: ${HTTP_STATUS}"
