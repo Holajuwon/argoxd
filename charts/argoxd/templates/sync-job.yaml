@@ -9,7 +9,7 @@ metadata:
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
     argocd.argoproj.io/sync-wave: "1"
 spec:
-  ttlSecondsAfterFinished: 120
+  ttlSecondsAfterFinished: 600
   template:
     metadata:
       labels:
