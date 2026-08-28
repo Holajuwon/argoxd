@@ -22,49 +22,36 @@ metadata:
     - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
 spec:
   tools:
-    - name: get_pet_status
-      description: This tool searches for pets based on specific status values
-        provided in a comma-separated string. It allows users to retrieve pets
-        according to their status within the pet store system.
+    - name: get_pet_by_id
+      description: This tool retrieves a specific pet using the unique ID. It provides
+        detailed information about the pet, ensuring users can access individual
+        pet records easily.
       inputSchema:
         type: object
         properties:
-          status:
-            description: The status value to filter pets by (e.g., available, pending,
-              sold).
-            x-parameter-location: query
-            type: string
-            default: available
-            enum:
-              - available
-              - pending
-              - sold
+          petId:
+            description: ID of the pet to return (e.g., 12345).
+            x-parameter-location: path
+            type: integer
+            format: int64
         required:
-          - status
-      title: Finds Pets by status.
+          - petId
+      title: Find pet by ID.
       x-api-binding:
-        operationPath: /pet/findByStatus
+        operationPath: /pet/{petId}
         operationMethod: GET
         api:
           $path: ./pet-spec.yml
-    - name: get_pet_tags
-      description: This tool finds pets with assigned tags. It enables users to filter
-        pets by multiple tag names, allowing for more precise and tailored
-        search results.
+    - name: get_store_inventory
+      description: This tool retrieves an inventory map of status codes and
+        corresponding quantities. It gives users insight into available stock,
+        aiding in operations and decision-making processes.
       inputSchema:
         type: object
-        properties:
-          tags:
-            description: An array of tags to filter pets by (e.g., ['fluffy', 'dog']).
-            x-parameter-location: query
-            type: array
-            items:
-              type: string
-        required:
-          - tags
-      title: Finds Pets by tags.
+        properties: {}
+      title: Returns pet inventories by status.
       x-api-binding:
-        operationPath: /pet/findByTags
+        operationPath: /store/inventory
         operationMethod: GET
         api:
           $path: ./pet-spec.yml
