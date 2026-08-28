@@ -22,6 +22,52 @@ metadata:
     - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
 spec:
   tools:
+    - name: get_pet_status
+      description: This tool searches for pets based on specific status values
+        provided in a comma-separated string. It allows users to retrieve pets
+        according to their status within the pet store system.
+      inputSchema:
+        type: object
+        properties:
+          status:
+            description: The status value to filter pets by (e.g., available, pending,
+              sold).
+            x-parameter-location: query
+            type: string
+            default: available
+            enum:
+              - available
+              - pending
+              - sold
+        required:
+          - status
+      title: Finds Pets by status.
+      x-api-binding:
+        operationPath: /pet/findByStatus
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
+    - name: get_pet_tags
+      description: This tool finds pets with assigned tags. It enables users to filter
+        pets by multiple tag names, allowing for more precise and tailored
+        search results.
+      inputSchema:
+        type: object
+        properties:
+          tags:
+            description: An array of tags to filter pets by (e.g., ['fluffy', 'dog']).
+            x-parameter-location: query
+            type: array
+            items:
+              type: string
+        required:
+          - tags
+      title: Finds Pets by tags.
+      x-api-binding:
+        operationPath: /pet/findByTags
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
     - name: get_pet_by_id
       description: This tool retrieves a specific pet using the unique ID. It provides
         detailed information about the pet, ensuring users can access individual
@@ -52,6 +98,79 @@ spec:
       title: Returns pet inventories by status.
       x-api-binding:
         operationPath: /store/inventory
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
+    - name: get_order_by_id
+      description: This tool fetches an order's details using an order ID. It provides
+        valuable information about the order, facilitating tracking and
+        management within the pet store system.
+      inputSchema:
+        type: object
+        properties:
+          orderId:
+            description: ID of the order to fetch (e.g., 67890).
+            x-parameter-location: path
+            type: integer
+            format: int64
+        required:
+          - orderId
+      title: Find purchase order by ID.
+      x-api-binding:
+        operationPath: /store/order/{orderId}
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
+    - name: log_into_system
+      description: This tool logs users into the pet store system using their provided
+        username and password. It enables secure access to the system for users.
+      inputSchema:
+        type: object
+        properties:
+          username:
+            description: The username for login (e.g., 'johndoe').
+            x-parameter-location: query
+            type: string
+          password:
+            description: The password for login in clear text (e.g., 'securepassword').
+            x-parameter-location: query
+            type: string
+      title: Logs user into the system.
+      x-api-binding:
+        operationPath: /user/login
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
+    - name: log_out_of_system
+      description: This tool logs out the current user from the pet store system,
+        ensuring secure access management. After logging out, users will need to
+        log in again to access the system.
+      inputSchema:
+        type: object
+        properties: {}
+      title: Logs out current logged in user session.
+      x-api-binding:
+        operationPath: /user/logout
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
+    - name: get_user_by_name
+      description: This tool retrieves user details by their username. It helps users
+        access specific user profiles, facilitating interactions and managing
+        user information within the pet store system.
+      inputSchema:
+        type: object
+        properties:
+          username:
+            description: The name that needs to be fetched. Use user1 for testing (e.g.,
+              'user1').
+            x-parameter-location: path
+            type: string
+        required:
+          - username
+      title: Get user by user name.
+      x-api-binding:
+        operationPath: /user/{username}
         operationMethod: GET
         api:
           $path: ./pet-spec.yml
