@@ -47,3 +47,24 @@ spec:
         operationMethod: GET
         api:
           $path: ./pet-spec.yml
+    - name: get_pet_tags
+      description: This tool finds pets with assigned tags. It enables users to filter
+        pets by multiple tag names, allowing for more precise and tailored
+        search results.
+      inputSchema:
+        type: object
+        properties:
+          tags:
+            description: An array of tags to filter pets by (e.g., ['fluffy', 'dog']).
+            x-parameter-location: query
+            type: array
+            items:
+              type: string
+        required:
+          - tags
+      title: Finds Pets by tags.
+      x-api-binding:
+        operationPath: /pet/findByTags
+        operationMethod: GET
+        api:
+          $path: ./pet-spec.yml
