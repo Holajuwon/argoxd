@@ -23,9 +23,7 @@ resources:
     memory: 256Mi
 
 # Standalone APIC instance credentials
-# Sensitive values (password) should be supplied via a separate values file
-# that is NOT committed to git (see charts/argoxd/values-secret.yaml.example)
 standalone:
   url:      "https://idig.fyre-ci-299620-master-1.dev.fyre.ibm.com"
   username: "administrator"
-  password: ""   # override via values-secret.yaml
+  password: ""
