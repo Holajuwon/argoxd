@@ -8,27 +8,18 @@
 # Environment variables:
 #   WORK_DIR    – directory containing the APIC YAML files (default: /work)
 #   UPLOAD_URL  – HTTP endpoint to POST the packaged ZIP to (required)
-#   SERVER_FILE – MCPServer YAML filename used as `apic build` entry point
-#                 (default: pet-mcp-server-mjsdo.yaml)
 
 set -e
 
 WORK_DIR="${WORK_DIR:-/work}"
-SERVER_FILE="${SERVER_FILE:-pet-mcp-server-mjsdo.yaml}"
 BUILD_DIR="/tmp/apic-build-out"
 
 echo "[apic-build-and-post] starting"
 echo "[apic-build-and-post] WORK_DIR   : ${WORK_DIR}"
 echo "[apic-build-and-post] UPLOAD_URL : ${UPLOAD_URL}"
-echo "[apic-build-and-post] SERVER_FILE: ${SERVER_FILE}"
 
 if [ -z "${UPLOAD_URL}" ]; then
   echo "[apic-build-and-post] ERROR: UPLOAD_URL env var is required" >&2
-  exit 1
-fi
-
-if [ ! -f "${WORK_DIR}/${SERVER_FILE}" ]; then
-  echo "[apic-build-and-post] ERROR: entry-point file not found: ${WORK_DIR}/${SERVER_FILE}" >&2
   exit 1
 fi
 
@@ -49,14 +40,11 @@ fi
 # ---------------------------------------------------------------------------
 
 mkdir -p "${BUILD_DIR}"
-echo "[apic-build-and-post] running: apic build --input ${SERVER_FILE} --output ${BUILD_DIR}"
+echo "[apic-build-and-post] running: apic build --localDir ${WORK_DIR} --output ${BUILD_DIR}"
 
-# `apic build` resolves $ref / $path values relative to the working directory,
-# so we cd into WORK_DIR before invoking it.
-cd "${WORK_DIR}"
 apic build \
-  --input "${SERVER_FILE}" \
-  --output "${BUILD_DIR}"
+  --localDir "${WORK_DIR}" \
+  --output   "${BUILD_DIR}"
 
 # ---------------------------------------------------------------------------
 # Locate the produced ZIP
