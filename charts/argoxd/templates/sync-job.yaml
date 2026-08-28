@@ -28,8 +28,9 @@ spec:
           env:
             - name: WORK_DIR
               value: /work
-            - name: UPLOAD_URL
-              value: "http://{{ include "argoxd.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/upload"
+          envFrom:
+            - secretRef:
+                name: {{ include "argoxd.fullname" . }}-standalone
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

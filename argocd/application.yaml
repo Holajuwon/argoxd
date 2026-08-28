@@ -15,6 +15,13 @@ spec:
   destination:
     server: https://kubernetes.default.svc
     namespace: default
+  ignoreDifferences:
+    - group: ""
+      kind: Secret
+      name: argoxd-standalone
+      namespace: default
+      jsonPointers:
+        - /data/STANDALONE_PASSWORD
   syncPolicy:
     automated:
       prune: true

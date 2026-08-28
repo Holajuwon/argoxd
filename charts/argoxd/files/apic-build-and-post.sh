@@ -2,12 +2,16 @@
 # apic-build-and-post.sh
 #
 # Builds an APIC product ZIP from the APIC YAML artifacts in WORK_DIR using
-# the @apistudio/apim-cli `apic build` command, then POSTs the resulting ZIP
-# (base64-encoded) to UPLOAD_URL.
+# the @apistudio/apim-cli `apic build` command, then publishes it to the
+# APIC standalone instance via:
+#   1. POST /api/v1/auth-token  → Bearer token
+#   2. POST /idig-broker/publish?is_portal_service=true  → multipart ZIP upload
 #
-# Environment variables:
-#   WORK_DIR    – directory containing the APIC YAML files (default: /work)
-#   UPLOAD_URL  – HTTP endpoint to POST the packaged ZIP to (required)
+# Environment variables (all required):
+#   WORK_DIR             – directory containing the APIC YAML files (default: /work)
+#   STANDALONE_URL       – base URL of the standalone APIC instance
+#   STANDALONE_USERNAME  – admin username
+#   STANDALONE_PASSWORD  – admin password
 
 set -e
 
@@ -16,17 +20,17 @@ BUILD_DIR="/tmp/apic-build-out"
 BUILD_ZIP="${BUILD_DIR}/pet-mcp-build.zip"
 
 echo "[apic-build-and-post] starting"
-echo "[apic-build-and-post] WORK_DIR   : ${WORK_DIR}"
-echo "[apic-build-and-post] UPLOAD_URL : ${UPLOAD_URL}"
+echo "[apic-build-and-post] WORK_DIR        : ${WORK_DIR}"
+echo "[apic-build-and-post] STANDALONE_URL  : ${STANDALONE_URL}"
+echo "[apic-build-and-post] STANDALONE_USER : ${STANDALONE_USERNAME}"
 
-if [ -z "${UPLOAD_URL}" ]; then
-  echo "[apic-build-and-post] ERROR: UPLOAD_URL env var is required" >&2
-  exit 1
-fi
-
-# ---------------------------------------------------------------------------
-# Install @apistudio/apim-cli if not already present
-# ---------------------------------------------------------------------------
+for var in STANDALONE_URL STANDALONE_USERNAME STANDALONE_PASSWORD; do
+  eval "val=\${${var}:-}"
+  if [ -z "$val" ]; then
+    echo "[apic-build-and-post] ERROR: ${var} env var is required" >&2
+    exit 1
+  fi
+done
 
 # ---------------------------------------------------------------------------
 # Ensure curl is available (node:XX-alpine ships without it)
@@ -36,6 +40,10 @@ if ! command -v curl > /dev/null 2>&1; then
   echo "[apic-build-and-post] installing curl..."
   apk add --no-cache curl 2>&1
 fi
+
+# ---------------------------------------------------------------------------
+# Install @apistudio/apim-cli if not already present
+# ---------------------------------------------------------------------------
 
 if ! command -v apic > /dev/null 2>&1; then
   echo "[apic-build-and-post] installing @apistudio/apim-cli..."
@@ -78,46 +86,58 @@ apic build pet-mcp \
   --localDir "${APIC_DIR}" \
   --output   "${BUILD_ZIP}"
 
+ZIP_SIZE=$(wc -c < "${BUILD_ZIP}")
+echo "[apic-build-and-post] built ZIP: ${BUILD_ZIP} (${ZIP_SIZE} bytes)"
+
 # ---------------------------------------------------------------------------
-# Locate the produced ZIP
+# Step 1 — Authenticate: POST /api/v1/auth-token → Bearer token
 # ---------------------------------------------------------------------------
 
-ZIP_FILE="${BUILD_ZIP}"
+echo "[apic-build-and-post] authenticating against ${STANDALONE_URL}/api/v1/auth-token"
 
-if [ -z "${ZIP_FILE}" ]; then
-  echo "[apic-build-and-post] ERROR: apic build produced no ZIP in ${BUILD_DIR}" >&2
-  ls -la "${BUILD_DIR}" >&2
+AUTH_RESPONSE=$(curl -sk \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -d "{\"username\":\"${STANDALONE_USERNAME}\",\"password\":\"${STANDALONE_PASSWORD}\"}" \
+  "${STANDALONE_URL}/api/v1/auth-token")
+
+echo "[apic-build-and-post] auth response: ${AUTH_RESPONSE}"
+
+# Extract token — works with both {"token":"..."} and {"accessToken":"..."}
+TOKEN=$(printf '%s' "${AUTH_RESPONSE}" | \
+  node -e "const d=JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')); console.log(d.token||d.accessToken||d.access_token||'');")
+
+if [ -z "${TOKEN}" ]; then
+  echo "[apic-build-and-post] ERROR: failed to extract token from auth response" >&2
   exit 1
 fi
 
-ZIP_SIZE=$(wc -c < "${ZIP_FILE}")
-echo "[apic-build-and-post] built ZIP  : ${ZIP_FILE} (${ZIP_SIZE} bytes)"
+echo "[apic-build-and-post] token acquired (${#TOKEN} chars)"
 
 # ---------------------------------------------------------------------------
-# Base64-encode and POST to backend
+# Step 2 — Publish: POST /idig-broker/publish?is_portal_service=true
 # ---------------------------------------------------------------------------
 
-ZIP_B64=$(base64 < "${ZIP_FILE}" | tr -d '\n')
-echo "[apic-build-and-post] base64 size: ${#ZIP_B64} chars"
+PUBLISH_URL="${STANDALONE_URL}/idig-broker/publish?is_portal_service=true"
+ZIP_FILENAME=$(basename "${BUILD_ZIP}")
 
-PAYLOAD="{\"zipBase64\":\"${ZIP_B64}\"}"
+echo "[apic-build-and-post] publishing to ${PUBLISH_URL}"
 
-echo "[apic-build-and-post] posting to ${UPLOAD_URL}"
-echo "[apic-build-and-post] payload size: ${#PAYLOAD} bytes"
+HTTP_STATUS=$(curl -sk \
+  -o /tmp/publish-response \
+  -w "%{http_code}" \
+  -X POST \
+  -H "Authorization: Bearer ${TOKEN}" \
+  -H "Cookie: accesstoken=Bearer ${TOKEN}" \
+  -F "project=@${BUILD_ZIP};type=application/zip;filename=${ZIP_FILENAME}" \
+  "${PUBLISH_URL}")
 
-HTTP_STATUS=$(printf '%s' "${PAYLOAD}" | \
-  curl -s -o /tmp/apic-post-response -w "%{http_code}" \
-       -X POST \
-       -H "Content-Type: application/json" \
-       -d @- \
-       "${UPLOAD_URL}")
-
-RESPONSE_BODY=$(cat /tmp/apic-post-response 2>/dev/null || echo "(empty)")
-echo "[apic-build-and-post] response status: ${HTTP_STATUS}"
-echo "[apic-build-and-post] response body  : ${RESPONSE_BODY}"
+RESPONSE_BODY=$(cat /tmp/publish-response 2>/dev/null || echo "(empty)")
+echo "[apic-build-and-post] publish status: ${HTTP_STATUS}"
+echo "[apic-build-and-post] publish response: ${RESPONSE_BODY}"
 
 if [ -z "${HTTP_STATUS}" ] || [ "${HTTP_STATUS}" -lt 200 ] || [ "${HTTP_STATUS}" -ge 300 ]; then
-  echo "[apic-build-and-post] ERROR: server returned status ${HTTP_STATUS}" >&2
+  echo "[apic-build-and-post] ERROR: publish returned status ${HTTP_STATUS}" >&2
   exit 1
 fi
 
