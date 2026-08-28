@@ -13,6 +13,7 @@ set -e
 
 WORK_DIR="${WORK_DIR:-/work}"
 BUILD_DIR="/tmp/apic-build-out"
+BUILD_ZIP="${BUILD_DIR}/pet-mcp-build.zip"
 
 echo "[apic-build-and-post] starting"
 echo "[apic-build-and-post] WORK_DIR   : ${WORK_DIR}"
@@ -62,17 +63,17 @@ ls -la "${APIC_PROJECT_DIR}"
 # ---------------------------------------------------------------------------
 
 mkdir -p "${BUILD_DIR}"
-echo "[apic-build-and-post] running: apic build pet-mcp --localDir ${APIC_DIR} --output ${BUILD_DIR}"
+echo "[apic-build-and-post] running: apic build pet-mcp --localDir ${APIC_DIR} --output ${BUILD_ZIP}"
 
 apic build pet-mcp \
   --localDir "${APIC_DIR}" \
-  --output   "${BUILD_DIR}"
+  --output   "${BUILD_ZIP}"
 
 # ---------------------------------------------------------------------------
 # Locate the produced ZIP
 # ---------------------------------------------------------------------------
 
-ZIP_FILE=$(find "${BUILD_DIR}" -maxdepth 1 -name "*.zip" | head -n 1)
+ZIP_FILE="${BUILD_ZIP}"
 
 if [ -z "${ZIP_FILE}" ]; then
   echo "[apic-build-and-post] ERROR: apic build produced no ZIP in ${BUILD_DIR}" >&2
