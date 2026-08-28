@@ -36,16 +36,26 @@ else
 fi
 
 # ---------------------------------------------------------------------------
-# Run `apic build` from WORK_DIR so relative $path references resolve
+# Copy work files to a writable temp dir (ConfigMap mounts are read-only
+# symlink trees; apic build requires a real, resolvable directory)
+# ---------------------------------------------------------------------------
+
+APIC_DIR="/tmp/apic-workdir"
+mkdir -p "${APIC_DIR}"
+cp -rL "${WORK_DIR}/." "${APIC_DIR}/"
+echo "[apic-build-and-post] copied work files to ${APIC_DIR}"
+ls -la "${APIC_DIR}"
+
+# ---------------------------------------------------------------------------
+# Run `apic build` against the real copy
 # ---------------------------------------------------------------------------
 
 mkdir -p "${BUILD_DIR}"
-echo "[apic-build-and-post] running: apic build --localDir ${WORK_DIR} --output ${BUILD_DIR}"
+echo "[apic-build-and-post] running: apic build pet-mcp --localDir ${APIC_DIR} --output ${BUILD_DIR}"
 
-apic build \
-  --localDir "${WORK_DIR}" \
-  --output   "${BUILD_DIR}" \
-  --all
+apic build pet-mcp \
+  --localDir "${APIC_DIR}" \
+  --output   "${BUILD_DIR}"
 
 # ---------------------------------------------------------------------------
 # Locate the produced ZIP
