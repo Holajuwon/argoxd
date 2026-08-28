@@ -18,17 +18,19 @@ spec:
       restartPolicy: Never
       automountServiceAccountToken: false
       containers:
-        - name: zip-and-post
+        - name: apic-build-and-post
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
-            - node
-            - /scripts/zip-and-post.js
+            - sh
+            - /scripts/apic-build-and-post.sh
           env:
             - name: WORK_DIR
               value: /work
             - name: UPLOAD_URL
               value: "http://{{ include "argoxd.fullname" . }}.{{ .Release.Namespace }}.svc.cluster.local:{{ .Values.service.port }}/upload"
+            - name: SERVER_FILE
+              value: {{ .Values.apicBuild.serverFile | default "pet-mcp-server-mjsdo.yaml" | quote }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:

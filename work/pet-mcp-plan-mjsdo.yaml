@@ -1,0 +1,13 @@
+kind: Plan
+apiVersion: api.ibm.com/v1
+metadata:
+  name: pet-mcp-plan-mjsdo
+  namespace: pet-mcp
+  version: '1.0'
+  tags: []
+  description: ''
+spec:
+  qos:
+    withQuota:
+      plan-limit:
+        - $ref: pet-mcp:pet-mcp-quota-mjsdo:1.0.27

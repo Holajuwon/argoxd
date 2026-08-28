@@ -1,0 +1,19 @@
+kind: MCPServer
+apiVersion: api.ibm.com/v1
+metadata:
+  name: pet-mcp-server-mjsdo
+  namespace: pet-mcp
+  version: 1.0.27
+  domain: mcp
+  tags: []
+spec:
+  title: pet MCP Server
+  protocolVersion: V2025_11_25
+  policy-sequence:
+    - $ref: pet-mcp:pet-mcp-freeflowpolicysequence-mjsdo:1.0.27
+  capabilities:
+    tools:
+      - $ref: pet-mcp:pet-mcp-tool-mjsdo:1.0.27
+  plans:
+    - $ref: pet-mcp:pet-mcp-plan-mjsdo:1.0
+    - $ref: pet-mcp:pet-mcp-plan-x-mjsdo:1.0

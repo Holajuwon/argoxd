@@ -6,8 +6,15 @@ namespace: default
 configMapGenerator:
   - name: argoxd-work-files
     files:
-      - openapi.yaml
-      - config.yaml
-      - schema.yaml
+      - invoke-mjsdo.yaml
+      - pet-mcp-freeflowpolicysequence-mjsdo.yaml
+      - pet-mcp-plan-mjsdo.yaml
+      - pet-mcp-plan-x-mjsdo.yaml
+      - pet-mcp-quota-mjsdo.yaml
+      - pet-mcp-quota-x-mjsdo.yaml
+      - pet-mcp-server-mjsdo.yaml
+      - pet-mcp-tool-mjsdo.yaml
+      - pet-spec.yml
+      - telemetry-mjsdo.yaml
     options:
       disableNameSuffixHash: true

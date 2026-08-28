@@ -1,0 +1,11 @@
+kind: Telemetry
+apiVersion: api.ibm.com/v1
+metadata:
+  name: telemetry-mjsdo
+  namespace: pet-mcp
+  version: 1.0.27
+  tags: []
+  labels:
+    gatewayTypes:
+      - nano
+spec: {}

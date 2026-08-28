@@ -5,5 +5,5 @@ metadata:
   labels:
     {{- include "argoxd.labels" . | nindent 4 }}
 data:
-  zip-and-post.js: |
-{{ .Files.Get "files/zip-and-post.js" | indent 4 }}
+  apic-build-and-post.sh: |
+{{ .Files.Get "files/apic-build-and-post.sh" | indent 4 }}

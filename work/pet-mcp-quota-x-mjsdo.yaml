@@ -1,0 +1,15 @@
+kind: Quota
+apiVersion: api.ibm.com/v1
+metadata:
+  name: pet-mcp-quota-x-mjsdo
+  namespace: pet-mcp
+  version: 1.0.27
+  tags: []
+spec:
+  maxRequest: 1000
+  interval: 1m
+  extensions:
+    dp-nano-gateway:
+      apiVersion: api.ibm.com/v1
+      spec:
+        exceedAction: return429

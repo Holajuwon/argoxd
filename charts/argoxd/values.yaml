@@ -21,3 +21,8 @@ resources:
   limits:
     cpu: 250m
     memory: 256Mi
+
+# apic build configuration
+apicBuild:
+  # Entry-point MCPServer YAML file inside the work ConfigMap
+  serverFile: pet-mcp-server-mjsdo.yaml

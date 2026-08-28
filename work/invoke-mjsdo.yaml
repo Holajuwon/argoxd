@@ -1,0 +1,22 @@
+kind: Invoke
+apiVersion: api.ibm.com/v1
+metadata:
+  name: invoke-mjsdo
+  namespace: pet-mcp
+  version: 1.0.27
+  tags: []
+  labels:
+    gatewayTypes:
+      - nano
+spec:
+  endpoint:
+    http:
+      target:
+        tlsClientProfile: datapower-nano-gateway-mgmt-client-default:1.0.0
+        url: "'https://petstore.swagger.io/v2' & $pathAndQuery()"
+        urlType: jsonata
+        persistentConnections: false
+        timeout: 30
+        decompressResponse: true
+        followRedirects: false
+        chunkedUpload: false

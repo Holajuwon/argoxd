@@ -1,0 +1,15 @@
+kind: FreeFlowPolicySequence
+apiVersion: api.ibm.com/v1
+metadata:
+  name: pet-mcp-freeflowpolicysequence-mjsdo
+  namespace: pet-mcp
+  version: 1.0.27
+  tags: []
+  labels:
+    gatewayTypes:
+      - nano
+spec:
+  main:
+    - $ref: pet-mcp:invoke-mjsdo:1.0.27
+  monitoring:
+    $ref: pet-mcp:telemetry-mjsdo:1.0.27
