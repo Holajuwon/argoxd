@@ -28,6 +28,15 @@ fi
 # Install @apistudio/apim-cli if not already present
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Ensure curl is available (node:XX-alpine ships without it)
+# ---------------------------------------------------------------------------
+
+if ! command -v curl > /dev/null 2>&1; then
+  echo "[apic-build-and-post] installing curl..."
+  apk add --no-cache curl 2>&1
+fi
+
 if ! command -v apic > /dev/null 2>&1; then
   echo "[apic-build-and-post] installing @apistudio/apim-cli..."
   npm install -g --prefer-offline --no-audit --no-fund @apistudio/apim-cli 2>&1
